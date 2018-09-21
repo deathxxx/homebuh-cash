@@ -239,7 +239,7 @@ class LangEn extends iLang {
 		215 => "Install",
 		216 => "Installing and configuring. Please wait ...",
 		217 => "Installation was successful",
-		218 => "Installation failed, contact support https://github.com/pihel/cash/issues",
+		218 => "Installation failed",
 		//update
 		219 => "Updating ...",
 		220 => "Manual change of the version is forbidden",

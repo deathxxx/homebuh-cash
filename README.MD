@@ -1,17 +1,8 @@
-…or create a new repository on the command line
+This is home buhgaltery project source take from pihel
 
-echo "# homebuh-cash" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/deathxxx/homebuh-cash.git
-git push -u origin master
+Docker container from one1one
 
-…or push an existing repository from the command line
+Dependencies:
+* Web server with PHP5, Sqlite3
 
-git remote add origin https://github.com/deathxxx/homebuh-cash.git
-git push -u origin master
-
-…or import code from another repository
-
-You can initialize this repository with code from a Subversion, Mercurial, or TFS project.
+License: GNU GPL v3 http://www.gnu.org/licenses/gpl
