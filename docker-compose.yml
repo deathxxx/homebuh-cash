@@ -1,0 +1,17 @@
+version: '2'
+services:
+  homebuh:
+      restart: always
+      dns: [172.16.3.3]
+      build:
+        context: .
+        dockerfile: "ubuntu-16-apache-php-5.6/Dockerfile"
+      ports:
+          - 8000:80
+      environment:
+          VIRTUAL_HOST: "prom-sochi.dostek.ev"
+          XDEBUG_CONFIG: "remote_host=172.16.3.6 remote_port=9001"
+          PHP_IDE_CONFIG: "serverName=prom-sochi.dostek.ev"
+      volumes:
+          - ./cash:/var/www/html
+      
