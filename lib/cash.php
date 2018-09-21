@@ -1,95 +1,119 @@
-<?
+<?php
+
 class Cash {
-  private $db;
-  private $usr;
-  private $lng;
-  
-  private $from = "-2 month";
+	private $db;
+	private $usr;
+	private $lng;
 
-  public function __construct($_db, $_usr, $_lng) {
-    $this->db = $_db;
-    $this->usr = $_usr;
-    $this->lng = $_lng;
-  }
+	private $from = "-2 month";
 
-  protected function makeFilter($name, $name_str, $val, $is_int, $not) {
-    $f = "";
-    if(empty($val) || $val == "null" || $val == "undefined") return $f;
+	public function __construct( $_db, $_usr, $_lng ) {
+		$this->db  = $_db;
+		$this->usr = $_usr;
+		$this->lng = $_lng;
+	}
 
-    $no = "";
-    $nos = "";
-    if($not) {
-      $nos = "NOT";
-      $no = "!";
-    }
-    if($is_int) {
-      $f = " AND ".$name." ".$no."= ". $val;
-    } else {
-      $f = " AND ". $this->db->getUpperFnc() ."(".$name_str.") ".$nos." like ". $this->db->getUpperFnc() ."('%". $this->db->escape($val)."%')";
-    }
-    return $f;
-  }
+	protected function makeFilter( $name, $name_str, $val, $is_int, $not ) {
+		$f = "";
+		if ( empty( $val ) || $val == "null" || $val == "undefined" ) {
+			return $f;
+		}
 
-  public function getExFilter($f) {
-    $ret = "";
+		$no  = "";
+		$nos = "";
+		if ( $not ) {
+			$nos = "NOT";
+			$no  = "!";
+		}
+		if ( $is_int ) {
+			$f = " AND " . $name . " " . $no . "= " . $val;
+		} else {
+			$f = " AND " . $this->db->getUpperFnc() . "(" . $name_str . ") " . $nos . " like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $val ) . "%')";
+		}
 
-    if(intval($f['exfilter']) == 0) return $ret;
+		return $f;
+	}
 
-    $ret .= $this->makeFilter("c.nmcl_id", "cn.name", $f['nmcl_id'], intval($f['nmcl_id']), $f['nmcl_id_no'] );
-    $ret .= $this->makeFilter("c.`group`", "cg.name", $f['pt_id'], intval($f['pt_id']), $f['pt_id_no'] );
-    if( floatval($f['price_from']) != 0 ) $ret .= " AND c.price >= ".floatval($f['price_from']);
-    if( floatval($f['price_to']) != 0 ) $ret .= " AND c.price <= ".floatval($f['price_to']);
-    $ret .= $this->makeFilter("c.cash_type_id", "ct.name", $f['ctype_id'], intval($f['ctype_id']), 0 );
-    $ret .= $this->makeFilter("c.cur_id", "cr.name", $f['cur_id'], intval($f['cur_id']), 0 );
-    if($f['oper_id'] === "0") $ret .= " AND c.type = 0";
-    if($f['oper_id'] === "1") $ret .= " AND c.type = 1";
-    //$ret .= $this->makeFilter("c.type", "", $f['oper_id'], 1, 0 );
-    $ret .= $this->makeFilter("c.org_id", "co.name", $f['org_id'], intval($f['org_id']), $f['org_id_no'] );
-    if( intval($f['uid']) > 0 ) {
-      $ret .= $this->makeFilter("c.uid", "", $f['uid'], intval($f['uid']), 0 );
-    }
-    
-    $ret .= $this->makeFilter("", "c.note", $f['note'], 0, $f['note_no'] );
-    if( intval($f['del']) == 1 ) {
-      $ret .= " AND c.visible = 0 ";
-    } else {
-      $ret .= " AND c.visible = 1 ";
-    }
-    if( intval($f['file']) == 1 ) {
-      $ret .= " AND c.file <> '' "; //IS NOT NULL ???
-    }
+	public function getExFilter( $f ) {
+		$ret = "";
 
-    //echo $ret;
-    return $ret;
-  }
-  
-  public function getList($from, $to, $exfltr, $short = false) {
-    if(!$this->usr->canRead()) return array();
+		if ( intval( $f['exfilter'] ) == 0 ) {
+			return $ret;
+		}
 
-    $filter = "";
+		$ret .= $this->makeFilter( "c.nmcl_id", "cn.name", $f['nmcl_id'], intval( $f['nmcl_id'] ), $f['nmcl_id_no'] );
+		$ret .= $this->makeFilter( "c.`group`", "cg.name", $f['pt_id'], intval( $f['pt_id'] ), $f['pt_id_no'] );
+		if ( floatval( $f['price_from'] ) != 0 ) {
+			$ret .= " AND c.price >= " . floatval( $f['price_from'] );
+		}
+		if ( floatval( $f['price_to'] ) != 0 ) {
+			$ret .= " AND c.price <= " . floatval( $f['price_to'] );
+		}
+		$ret .= $this->makeFilter( "c.cash_type_id", "ct.name", $f['ctype_id'], intval( $f['ctype_id'] ), 0 );
+		$ret .= $this->makeFilter( "c.cur_id", "cr.name", $f['cur_id'], intval( $f['cur_id'] ), 0 );
+		if ( $f['oper_id'] === "0" ) {
+			$ret .= " AND c.type = 0";
+		}
+		if ( $f['oper_id'] === "1" ) {
+			$ret .= " AND c.type = 1";
+		}
+		//$ret .= $this->makeFilter("c.type", "", $f['oper_id'], 1, 0 );
+		$ret .= $this->makeFilter( "c.org_id", "co.name", $f['org_id'], intval( $f['org_id'] ), $f['org_id_no'] );
+		if ( intval( $f['uid'] ) > 0 ) {
+			$ret .= $this->makeFilter( "c.uid", "", $f['uid'], intval( $f['uid'] ), 0 );
+		}
 
-    if(empty($from)) $from = date("Y-m-d");
-    if(empty($to)) $to = date("Y-m-d");
+		$ret .= $this->makeFilter( "", "c.note", $f['note'], 0, $f['note_no'] );
+		if ( intval( $f['del'] ) == 1 ) {
+			$ret .= " AND c.visible = 0 ";
+		} else {
+			$ret .= " AND c.visible = 1 ";
+		}
+		if ( intval( $f['file'] ) == 1 ) {
+			$ret .= " AND c.file <> '' "; //IS NOT NULL ???
+		}
 
-    $filter = $this->getExFilter($exfltr);
-    if(empty($filter)) $filter = " AND c.visible = 1 ";
+		//echo $ret;
+		return $ret;
+	}
 
-    $this->db->escape_res = true;
-    $desc = "ASC";
-    $select = 
-      "c.id, c.nmcl_id, c.fpd, cn.name as nom, c.`group`, cg.name gname, c.price, c.qnt, c.date as oper_date, c.date_edit,
+	public function getList( $from, $to, $exfltr, $short = false ) {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+
+		$filter = "";
+
+		if ( empty( $from ) ) {
+			$from = date( "Y-m-d" );
+		}
+		if ( empty( $to ) ) {
+			$to = date( "Y-m-d" );
+		}
+
+		$filter = $this->getExFilter( $exfltr );
+		if ( empty( $filter ) ) {
+			$filter = " AND c.visible = 1 ";
+		}
+
+		$this->db->escape_res = true;
+		$desc                 = "ASC";
+		$select               =
+			"c.id, c.nmcl_id, c.fpd, cn.name as nom, c.`group`, cg.name gname, c.price, c.qnt, c.date as oper_date, c.date_edit,
         c.org_id, co.name as oname, c.type, c.note, c.file, c.uid, u.login, cr.rate, cr.sign, c.cash_type_id, ct.name as cash_type,
         CASE WHEN c.type = 0 THEN -1 ELSE 1 END * c.price * c.qnt * cr.rate as amount";
-    if($short) {
-      global $settings;
-      if( $settings['round'] ) $round = "ROUND";
-      $select = "c.id, cn.name as nom, c.date as dt, co.name as oname, u.login, cr.sign, 
-            CASE WHEN c.type = 0 THEN -1 ELSE 1 END * ".$round."(c.price * c.qnt * cr.rate) as amount ";
-      $desc = "DESC";
-    }
-    $sql =
-    " SELECT
-      ".$select."
+		if ( $short ) {
+			global $settings;
+			if ( $settings['round'] ) {
+				$round = "ROUND";
+			}
+			$select = "c.id, cn.name as nom, c.date as dt, co.name as oname, u.login, cr.sign, 
+            CASE WHEN c.type = 0 THEN -1 ELSE 1 END * " . $round . "(c.price * c.qnt * cr.rate) as amount ";
+			$desc   = "DESC";
+		}
+		$sql =
+			" SELECT
+      " . $select . "
      FROM cashes c
      INNER JOIN currency cr
       ON(c.cur_id = cr.id)
@@ -106,18 +130,20 @@ class Cash {
      WHERE
       c.date BETWEEN ? AND ?
       AND c.bd_id = ?
-      ". $filter ."
+      " . $filter . "
      ORDER BY
-      c.date ".$desc.", c.date_edit ".$desc;
+      c.date " . $desc . ", c.date_edit " . $desc;
 
-     return $this->db->select($sql, $from, $to, $this->usr->db_id);
-  }
+		return $this->db->select( $sql, $from, $to, $this->usr->db_id );
+	}
 
-  public function getItem($id) {
-    if(!$this->usr->canRead()) return array();
+	public function getItem( $id ) {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
 
-    $sql =
-    " SELECT
+		$sql =
+			" SELECT
       c.nmcl_id, c.`group`, c.price, c.qnt, c.date as oper_date, c.cur_id,
       c.org_id, c.type, c.note, c.file, c.uid, c.cash_type_id, c.fpd
      FROM cashes c
@@ -125,69 +151,78 @@ class Cash {
       c.id = ?
       AND c.bd_id = ?";
 
-     return $this->db->line($sql, $id, $this->usr->db_id);
-  }
-  
-  public function checkFpd($fpd) {
-    if(!$this->usr->canRead()) return array();
+		return $this->db->line( $sql, $id, $this->usr->db_id );
+	}
 
-    $sql =
-    " SELECT MAX(1)
+	public function checkFpd( $fpd ) {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+
+		$sql =
+			" SELECT MAX(1)
      FROM cashes c
      WHERE
       c.fpd = ?
       AND c.bd_id = ?";
 
-     return intval( $this->db->element($sql, $fpd, $this->usr->db_id) );
-  }
-  
-  public function getSettings_flat() {
-    if(!$this->usr->canRead()) return array();
-    $sql = "SELECT name, descr, value FROM cashes_setting";
-    //$this->db->escape_res = true;
-    return $this->db->select($sql);
-  }
+		return intval( $this->db->element( $sql, $fpd, $this->usr->db_id ) );
+	}
 
-  public function getSettings() {
-    //if(!$this->usr->canRead()) return array();
-    
-    /*$this->db->exec('CREATE TABLE cashes_setting (
-        "name" VARCHAR(50) PRIMARY KEY NOT NULL,
-        "descr" VARCHAR(250),
-        "value" VARCHAR(250))');
-        
-    $this->db->exec('CREATE UNIQUE INDEX "XPK_CASHES_SETTING" on cashes_setting (name ASC)');*/
-    
-    $sql = "SELECT name, value FROM cashes_setting
+	public function getSettings_flat() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+		$sql = "SELECT name, descr, value FROM cashes_setting";
+
+		//$this->db->escape_res = true;
+		return $this->db->select( $sql );
+	}
+
+	public function getSettings() {
+		//if(!$this->usr->canRead()) return array();
+
+		/*$this->db->exec('CREATE TABLE cashes_setting (
+			"name" VARCHAR(50) PRIMARY KEY NOT NULL,
+			"descr" VARCHAR(250),
+			"value" VARCHAR(250))');
+
+		$this->db->exec('CREATE UNIQUE INDEX "XPK_CASHES_SETTING" on cashes_setting (name ASC)');*/
+
+		$sql = "SELECT name, value FROM cashes_setting
             UNION 
             SELECT 'sign', c.sign FROM currency c WHERE id = 1"; //(SELECT value FROM cashes_setting WHERE name = 'currency')
-    $set = $this->db->select($sql);
-    
-    $sk = array();
-    foreach($set as $s) {
-      $sk[$s['name']] = $s['value'];
-    }
+		$set = $this->db->select( $sql );
 
-    return $sk;
-  }
+		$sk = array();
+		foreach ( $set as $s ) {
+			$sk[ $s['name'] ] = $s['value'];
+		}
 
-  public function nmcl_list($query, $id, $limit = 0) {
-    $id = intval($id);
-    //if(empty($query) && $id == 0) return array();
-    if(!$this->usr->canRead()) return array();
-    $limit = intval($limit);
-    if($limit == 0) $limit = 50;
+		return $sk;
+	}
 
-    if( !empty($query) && $id > 0 ) {
-      $filter = " AND ( ". $this->db->getUpperFnc() ."(cn.name) like ". $this->db->getUpperFnc() ."('%". $this->db->escape($query) ."%') OR c.id = ". $id ." )";
-    } else if($id > 0) {
-      $filter = " AND c.id = ". $id;
-    } else if(!empty($query)) {
-      $filter = " AND ". $this->db->getUpperFnc() ."(cn.name) like ". $this->db->getUpperFnc() ."('%". $this->db->escape($query) ."%') ";
-    }
+	public function nmcl_list( $query, $id, $limit = 0 ) {
+		$id = intval( $id );
+		//if(empty($query) && $id == 0) return array();
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+		$limit = intval( $limit );
+		if ( $limit == 0 ) {
+			$limit = 50;
+		}
 
-    $sql =
-    "SELECT
+		if ( ! empty( $query ) && $id > 0 ) {
+			$filter = " AND ( " . $this->db->getUpperFnc() . "(cn.name) like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $query ) . "%') OR c.id = " . $id . " )";
+		} else if ( $id > 0 ) {
+			$filter = " AND c.id = " . $id;
+		} else if ( ! empty( $query ) ) {
+			$filter = " AND " . $this->db->getUpperFnc() . "(cn.name) like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $query ) . "%') ";
+		}
+
+		$sql =
+			"SELECT
       DISTINCT cn.id, cn.name
     FROM cashes c
     INNER JOIN cashes_nom cn
@@ -200,27 +235,32 @@ class Cash {
     ORDER BY
       SUM(CASE WHEN c.uid = ? THEN 100 ELSE 1 END) DESC, COUNT(1) DESC, cn.id
     LIMIT " . $limit;
-    //1 к 100 кол-во чужих записей
-    
-    return $this->db->select($sql, $this->usr->db_id, $this->usr->id);
-  }
 
-  public function nmcl_list_flat() {
-    if(!$this->usr->canRead()) return array();
-    $sql =
-    "SELECT
+		//1 к 100 кол-во чужих записей
+
+		return $this->db->select( $sql, $this->usr->db_id, $this->usr->id );
+	}
+
+	public function nmcl_list_flat() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+		$sql =
+			"SELECT
       cn.id, cn.name
     FROM cashes_nom cn ";
-    
-    return $this->db->select($sql);
-  }
 
-  public function nmcl_param($nmcl_id, $nmcl_name) {
-    if(!$this->usr->canRead()) return array();
+		return $this->db->select( $sql );
+	}
 
-    //cn.id, cn.name,
-    $sql =
-    "SELECT
+	public function nmcl_param( $nmcl_id, $nmcl_name ) {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+
+		//cn.id, cn.name,
+		$sql =
+			"SELECT
       c.`group` grp,
       c.org_id,
       co.name as org_name,
@@ -233,12 +273,12 @@ class Cash {
       ON(cg.id = c.`group`)
     INNER JOIN ( 
       SELECT c1.nmcl_id as nm_id,
-          ".$this->db->getDateAddFnc("MAX(c1.date)", $this->from)." as date
+          " . $this->db->getDateAddFnc( "MAX(c1.date)", $this->from ) . " as date
       FROM 
           cashes c1 
       WHERE
           ( c1.nmcl_id = ? OR (c1.nmcl_id IN(SELECT n.id FROM cashes_nom n 
-                                     WHERE ". $this->db->getUpperFnc() ."(n.name) like ". $this->db->getUpperFnc() ."('%". $this->db->escape($nmcl_name)."%')) AND ? = 0) 
+                                     WHERE " . $this->db->getUpperFnc() . "(n.name) like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $nmcl_name ) . "%')) AND ? = 0) 
           )
           AND c1.bd_id = ? AND c1.visible = 1
       GROUP BY c1.nmcl_id
@@ -247,57 +287,72 @@ class Cash {
     ORDER BY
       SUM(CASE WHEN c.uid = ? THEN 100 ELSE 1 END) DESC, COUNT(1) DESC
     LIMIT 1  ";
-    return $this->db->line($sql, $nmcl_id, $nmcl_id, $this->usr->db_id, $this->usr->id);
-  }
 
-  public function prod_type_list() {
-    if(!$this->usr->canRead()) return array();
+		return $this->db->line( $sql, $nmcl_id, $nmcl_id, $this->usr->db_id, $this->usr->id );
+	}
 
-    $sql =
-    "SELECT id,name,pid FROM cashes_group";
-    return $this->db->select($sql);
-  }
+	public function prod_type_list() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
 
-  public function currency_list() {
-    if(!$this->usr->canRead()) return array();
+		$sql =
+			"SELECT id,name,pid FROM cashes_group";
 
-    $sql =
-    "SELECT id,name,rate,sign,short_name FROM currency";
-    return $this->db->select($sql);
-  }
+		return $this->db->select( $sql );
+	}
 
-  public function cashes_type_list() {
-    if(!$this->usr->canRead()) return array();
+	public function currency_list() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
 
-    $sql =
-    "SELECT id,name,pid FROM cashes_type";
-    return $this->db->select($sql);
-  }
+		$sql =
+			"SELECT id,name,rate,sign,short_name FROM currency";
 
-  public function org_list_flat() {
-    if(!$this->usr->canRead()) return array();
-    $sql =
-    "SELECT
+		return $this->db->select( $sql );
+	}
+
+	public function cashes_type_list() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+
+		$sql =
+			"SELECT id,name,pid FROM cashes_type";
+
+		return $this->db->select( $sql );
+	}
+
+	public function org_list_flat() {
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
+		$sql =
+			"SELECT
       co.id, co.pid, co.name, co.city
     FROM cashes_org co ";
-    return $this->db->select($sql);
-  }
 
-  public function org_list($query, $id) {
-    $id = intval($id);
-    //if(empty($query) && $id == 0) return array();
-    if(!$this->usr->canRead()) return array();
+		return $this->db->select( $sql );
+	}
 
-    if( !empty($query) && $id > 0 ) {
-      $filter = " AND ( ". $this->db->getUpperFnc() ."(co.name) like ". $this->db->getUpperFnc() ."('%". $this->db->escape($query) ."%') OR c.id = ". $id ." )";
-    } else if($id > 0) {
-      $filter = " AND c.id = ". $id;
-    } else if(!empty($query)) {
-      $filter = " AND ". $this->db->getUpperFnc() ."(co.name) like ". $this->db->getUpperFnc() ."('%". $this->db->escape($query) ."%') ";
-    }
+	public function org_list( $query, $id ) {
+		$id = intval( $id );
+		//if(empty($query) && $id == 0) return array();
+		if ( ! $this->usr->canRead() ) {
+			return array();
+		}
 
-    $sql =
-    "SELECT
+		if ( ! empty( $query ) && $id > 0 ) {
+			$filter = " AND ( " . $this->db->getUpperFnc() . "(co.name) like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $query ) . "%') OR c.id = " . $id . " )";
+		} else if ( $id > 0 ) {
+			$filter = " AND c.id = " . $id;
+		} else if ( ! empty( $query ) ) {
+			$filter = " AND " . $this->db->getUpperFnc() . "(co.name) like " . $this->db->getUpperFnc() . "('%" . $this->db->escape( $query ) . "%') ";
+		}
+
+		$sql =
+			"SELECT
       co.id, co.name
     FROM
       cashes c
@@ -311,154 +366,219 @@ class Cash {
     ORDER BY
       SUM(CASE WHEN c.uid = ? THEN 100 ELSE 1 END) DESC, COUNT( 1 )  DESC, co.id
     LIMIT 50 ";
-    return $this->db->select($sql, $this->usr->db_id, $this->usr->id);
-  }
 
-  public function del($id) {
-    if(!$this->usr->canWrite()) return $this->lng->get(159);
+		return $this->db->select( $sql, $this->usr->db_id, $this->usr->id );
+	}
 
-    $this->db->start_tran();
-    $fl = $this->getFile($id);
-    if(!empty($fl)) {
-      @unlink(dirname(__FILE__)."/".$fl);
-    }
-    $this->db->exec("UPDATE cashes SET visible = 0 WHERE id = ? AND bd_id = ?", $id, $this->usr->db_id );
-    $cnt = intval( $this->db->affect() );
-    $this->db->commit();
-    return $cnt;
-  }
+	public function del( $id ) {
+		if ( ! $this->usr->canWrite() ) {
+			return $this->lng->get( 159 );
+		}
 
-  public function add_refbook($name, $ref) {
-    if(!$this->usr->canWrite()) return NULL;
-    
-    $ref_id = 0;
-    $name = trim($name);
-    if(empty($name)) return 0;
-    
-    if(is_numeric($name) && intval($name) > 0) {
-      //число или название?
-      $ref_id = $this->db->element("SELECT MAX(id) id from ".$ref." WHERE ID = ?", $name );
-    } else {
-      //название
-      $ref_id = $this->db->element("SELECT MAX(id) id from ".$ref." WHERE ". $this->db->getUpperFnc() ."(name) = ". $this->db->getUpperFnc() ."(?)", $name );
-    }
-    $ref_id = intval($ref_id);
+		$this->db->start_tran();
+		$fl = $this->getFile( $id );
+		if ( ! empty( $fl ) ) {
+			@unlink( dirname( __FILE__ ) . "/" . $fl );
+		}
+		$this->db->exec( "UPDATE cashes SET visible = 0 WHERE id = ? AND bd_id = ?", $id, $this->usr->db_id );
+		$cnt = intval( $this->db->affect() );
+		$this->db->commit();
 
-    if($ref_id == 0) {
-      $this->db->exec("INSERT INTO ".$ref."(name) VALUES(?)",  $name);
-      $ref_id = $this->db->last_id();
-    }
-    return intval( $ref_id );
-  }
+		return $cnt;
+	}
 
-  protected function refbook_check($data, $files = array() ) {
+	public function add_refbook( $name, $ref ) {
+		if ( ! $this->usr->canWrite() ) {
+			return null;
+		}
 
-    $ret = array();
+		$ref_id = 0;
+		$name   = trim( $name );
+		if ( empty( $name ) ) {
+			return 0;
+		}
 
-    if(empty($data) || !$this->usr->canWrite()) return array('failure'=>true, 'msg'=> $this->lng->get(160));
+		if ( is_numeric( $name ) && intval( $name ) > 0 ) {
+			//число или название?
+			$ref_id = $this->db->element( "SELECT MAX(id) id from " . $ref . " WHERE ID = ?", $name );
+		} else {
+			//название
+			$ref_id = $this->db->element( "SELECT MAX(id) id from " . $ref . " WHERE " . $this->db->getUpperFnc() . "(name) = " . $this->db->getUpperFnc() . "(?)", $name );
+		}
+		$ref_id = intval( $ref_id );
 
-    $ret['file'] = '';
-    if(is_array($files['cash_item_file'])) {
-      global $settings;
-      if($settings['demo'] == 1 && !empty($files['cash_item_file']['name'])) { 
-        $this->db->rollback();
-        return array('failure'=>true, 'msg'=> $this->lng->get(162));
-      }
-      
-      global $max_file_size;
-      if( ( $files['cash_item_file']['size'] > $max_file_size && intval($max_file_size) > 0 ) || $files['cash_item_file']['error'] == 1 ) {
-        return array('failure'=>true, 'msg'=> $this->lng->get(222, array(round($max_file_size/1024/1024,2))) );
-      }
-      
-      $ext = pathinfo($files['cash_item_file']['name'], PATHINFO_EXTENSION);
-      $name = crc32(time().$files['cash_item_file']['name']);
-      $dir = 'files/'.$_SERVER['HTTP_HOST'];
-      if(!is_dir("../".$dir)) mkdir("../".$dir);
-      $fname = $dir."/".$name.".".$ext;
-      if(move_uploaded_file($files['cash_item_file']['tmp_name'], "../".$fname)) {
-        $ret['file'] = $fname;
-      }
-    }
+		if ( $ref_id == 0 ) {
+			$this->db->exec( "INSERT INTO " . $ref . "(name) VALUES(?)", $name );
+			$ref_id = $this->db->last_id();
+		}
 
-    $ret['cash_item_date'] = $data['cash_item_date'];
-    if(empty($ret['cash_item_date'])) 		        { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(163)); }
+		return intval( $ref_id );
+	}
 
-    $ret['cash_item_nmcl_cb']                     = $this->add_refbook($data["cash_item_nmcl_cb"], "cashes_nom");
-    if( $ret['cash_item_nmcl_cb'] == 0) 	        { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(164)); }
+	protected function refbook_check( $data, $files = array() ) {
 
-    $ret['cash_item_prod_type_cb']                = $this->add_refbook($data["cash_item_prod_type_cb"], "cashes_group");
-    if($ret['cash_item_prod_type_cb'] == 0) 	    { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(165)); }
+		$ret = array();
 
-    $data['cash_item_price']                      = str_replace(",", ".", $data['cash_item_price']);
-    $ret['cash_item_price']                       = floatval( $data['cash_item_price'] );
-    if($ret['cash_item_price'] == 0)   	          { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(166)); }
+		if ( empty( $data ) || ! $this->usr->canWrite() ) {
+			return array( 'failure' => true, 'msg' => $this->lng->get( 160 ) );
+		}
 
-    $ret['cash_item_currency_cb']                 = $this->add_refbook($data["cash_item_currency_cb"], "currency");
-    if($ret['cash_item_currency_cb'] == 0) 	      { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(167)); }
+		$ret['file'] = '';
+		if ( is_array( $files['cash_item_file'] ) ) {
+			global $settings;
+			if ( $settings['demo'] == 1 && ! empty( $files['cash_item_file']['name'] ) ) {
+				$this->db->rollback();
 
-    $ret['cash_item_ctype_cb']                    = $this->add_refbook($data["cash_item_ctype_cb"], "cashes_type");
-    if($ret['cash_item_ctype_cb'] == 0) 	        { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(168)); }
+				return array( 'failure' => true, 'msg' => $this->lng->get( 162 ) );
+			}
 
-    $data['cash_item_qnt']                        = str_replace(",", ".", $data['cash_item_qnt']);
-    $ret['cash_item_qnt']                         = floatval( $data['cash_item_qnt'] );
-    if($ret['cash_item_qnt'] == 0)   		          { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(169)); }
+			global $max_file_size;
+			if ( ( $files['cash_item_file']['size'] > $max_file_size && intval( $max_file_size ) > 0 ) || $files['cash_item_file']['error'] == 1 ) {
+				return array(
+					'failure' => true,
+					'msg'     => $this->lng->get( 222, array( round( $max_file_size / 1024 / 1024, 2 ) ) )
+				);
+			}
 
-    $ret['cash_item_org_cb']                      = $this->add_refbook($data["cash_item_org_cb"], "cashes_org");
-    if($ret['cash_item_org_cb'] == 0) 		        { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(170)); }
+			$ext  = pathinfo( $files['cash_item_file']['name'], PATHINFO_EXTENSION );
+			$name = crc32( time() . $files['cash_item_file']['name'] );
+			$dir  = 'files/' . $_SERVER['HTTP_HOST'];
+			if ( ! is_dir( "../" . $dir ) ) {
+				mkdir( "../" . $dir );
+			}
+			$fname = $dir . "/" . $name . "." . $ext;
+			if ( move_uploaded_file( $files['cash_item_file']['tmp_name'], "../" . $fname ) ) {
+				$ret['file'] = $fname;
+			}
+		}
 
-    $ret['cash_item_toper_cb']                    = intval($data['cash_item_toper_cb']);
-    if( !in_array($ret['cash_item_toper_cb'], array(0,1)) )	{ $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(171)); }
+		$ret['cash_item_date'] = $data['cash_item_date'];
+		if ( empty( $ret['cash_item_date'] ) ) {
+			$this->db->rollback();
 
-    $ret['cash_item_note']                        = $data['cash_item_note'];
-    $ret['cash_item_geo']                         = $data['cash_item_geo'];
-    $ret['cash_item_fpd']                         = $data['cash_item_fpd'];   
-    
-    return $ret;
-  }
+			return array( 'failure' => true, 'msg' => $this->lng->get( 163 ) );
+		}
 
-  public function getFile($id, $short = false) {
-    if($id == -1) {      
-      if(!$this->usr->canSetting()) return "";
-      global $sqlite_path;
-      return $sqlite_path;
-    }
-    if(!$this->usr->canRead()) return "";
-    $file = $this->db->element("SELECT `file` FROM `cashes` WHERE id = ? AND bd_id = ?", $id, $this->usr->db_id);
-    
-    if($short) {
-      return $file;
-    } 
-    return dirname(__FILE__)."/../".$file;
-  }
+		$ret['cash_item_nmcl_cb'] = $this->add_refbook( $data["cash_item_nmcl_cb"], "cashes_nom" );
+		if ( $ret['cash_item_nmcl_cb'] == 0 ) {
+			$this->db->rollback();
 
-  public function edit($data, $files) {
-    if(!$this->usr->canWrite()) return array('failure'=>true, 'msg'=> $this->lng->get(159) );
-    global $settings;
-    if(intval($settings['secure_user']) == 1) {
-      $uid = $this->db->element("SELECT uid from cashes WHERE ID = ?", $data['cash_item_edit_id'] );
-      if( intval($uid) != $this->usr->id ) {
-        return array('failure'=>true, 'msg'=> $this->lng->get(159) );
-      }
-    }
+			return array( 'failure' => true, 'msg' => $this->lng->get( 164 ) );
+		}
 
-    $this->db->start_tran();
+		$ret['cash_item_prod_type_cb'] = $this->add_refbook( $data["cash_item_prod_type_cb"], "cashes_group" );
+		if ( $ret['cash_item_prod_type_cb'] == 0 ) {
+			$this->db->rollback();
 
-    $fl = $this->getFile($data['cash_item_edit_id'], true);
-    
-    if(intval($data['cash_item_file_del']) == 1 ) {
-      if(!empty($fl)) {
-        @unlink(dirname(__FILE__)."/../".$fl);
-        $fl = "";
-      }
-    }
+			return array( 'failure' => true, 'msg' => $this->lng->get( 165 ) );
+		}
 
-    $refb = $this->refbook_check($data, $files);
-    if( empty($refb['file']) && !empty($fl) ) $refb['file'] = $fl;
+		$data['cash_item_price'] = str_replace( ",", ".", $data['cash_item_price'] );
+		$ret['cash_item_price']  = floatval( $data['cash_item_price'] );
+		if ( $ret['cash_item_price'] == 0 ) {
+			$this->db->rollback();
 
-    if($refb['failure']) return $refb;
+			return array( 'failure' => true, 'msg' => $this->lng->get( 166 ) );
+		}
 
-    $sql =
-    "UPDATE `cashes`
+		$ret['cash_item_currency_cb'] = $this->add_refbook( $data["cash_item_currency_cb"], "currency" );
+		if ( $ret['cash_item_currency_cb'] == 0 ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 167 ) );
+		}
+
+		$ret['cash_item_ctype_cb'] = $this->add_refbook( $data["cash_item_ctype_cb"], "cashes_type" );
+		if ( $ret['cash_item_ctype_cb'] == 0 ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 168 ) );
+		}
+
+		$data['cash_item_qnt'] = str_replace( ",", ".", $data['cash_item_qnt'] );
+		$ret['cash_item_qnt']  = floatval( $data['cash_item_qnt'] );
+		if ( $ret['cash_item_qnt'] == 0 ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 169 ) );
+		}
+
+		$ret['cash_item_org_cb'] = $this->add_refbook( $data["cash_item_org_cb"], "cashes_org" );
+		if ( $ret['cash_item_org_cb'] == 0 ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 170 ) );
+		}
+
+		$ret['cash_item_toper_cb'] = intval( $data['cash_item_toper_cb'] );
+		if ( ! in_array( $ret['cash_item_toper_cb'], array( 0, 1 ) ) ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 171 ) );
+		}
+
+		$ret['cash_item_note'] = $data['cash_item_note'];
+		$ret['cash_item_geo']  = $data['cash_item_geo'];
+		$ret['cash_item_fpd']  = $data['cash_item_fpd'];
+
+		return $ret;
+	}
+
+	public function getFile( $id, $short = false ) {
+		if ( $id == - 1 ) {
+			if ( ! $this->usr->canSetting() ) {
+				return "";
+			}
+			global $sqlite_path;
+
+			return $sqlite_path;
+		}
+		if ( ! $this->usr->canRead() ) {
+			return "";
+		}
+		$file = $this->db->element( "SELECT `file` FROM `cashes` WHERE id = ? AND bd_id = ?", $id, $this->usr->db_id );
+
+		if ( $short ) {
+			return $file;
+		}
+
+		return dirname( __FILE__ ) . "/../" . $file;
+	}
+
+	public function edit( $data, $files ) {
+		if ( ! $this->usr->canWrite() ) {
+			return array( 'failure' => true, 'msg' => $this->lng->get( 159 ) );
+		}
+		global $settings;
+		if ( intval( $settings['secure_user'] ) == 1 ) {
+			$uid = $this->db->element( "SELECT uid from cashes WHERE ID = ?", $data['cash_item_edit_id'] );
+			if ( intval( $uid ) != $this->usr->id ) {
+				return array( 'failure' => true, 'msg' => $this->lng->get( 159 ) );
+			}
+		}
+
+		$this->db->start_tran();
+
+		$fl = $this->getFile( $data['cash_item_edit_id'], true );
+
+		if ( intval( $data['cash_item_file_del'] ) == 1 ) {
+			if ( ! empty( $fl ) ) {
+				@unlink( dirname( __FILE__ ) . "/../" . $fl );
+				$fl = "";
+			}
+		}
+
+		$refb = $this->refbook_check( $data, $files );
+		if ( empty( $refb['file'] ) && ! empty( $fl ) ) {
+			$refb['file'] = $fl;
+		}
+
+		if ( $refb['failure'] ) {
+			return $refb;
+		}
+
+		$sql =
+			"UPDATE `cashes`
       SET nmcl_id = ?,
           `group` = ?,
           price = ?,
@@ -470,182 +590,206 @@ class Cash {
           `type` = ?,
           note = ?,
           cur_id = ?,
-          date_edit = ". $this->db->getDateFnc() ."
+          date_edit = " . $this->db->getDateFnc() . "
      WHERE id = ? ";
 
-    $this->db->exec($sql,
-      $refb['cash_item_nmcl_cb'],
-      $refb['cash_item_prod_type_cb'],
-      $refb['cash_item_price'],
-      $refb['cash_item_ctype_cb'],
-      $refb['cash_item_qnt'],
-      $refb['cash_item_date'],
-      $refb['cash_item_org_cb'],
-      $refb['file'],
-      $refb['cash_item_toper_cb'],
-      $refb['cash_item_note'],
-      $refb['cash_item_currency_cb'],
-      intval($data['cash_item_edit_id'])
-    );
+		$this->db->exec( $sql,
+			$refb['cash_item_nmcl_cb'],
+			$refb['cash_item_prod_type_cb'],
+			$refb['cash_item_price'],
+			$refb['cash_item_ctype_cb'],
+			$refb['cash_item_qnt'],
+			$refb['cash_item_date'],
+			$refb['cash_item_org_cb'],
+			$refb['file'],
+			$refb['cash_item_toper_cb'],
+			$refb['cash_item_note'],
+			$refb['cash_item_currency_cb'],
+			intval( $data['cash_item_edit_id'] )
+		);
 
-    $cnt = intval( $this->db->affect() );
-    if($cnt == 0) { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(172)); }
+		$cnt = intval( $this->db->affect() );
+		if ( $cnt == 0 ) {
+			$this->db->rollback();
 
-    $this->db->commit();
+			return array( 'failure' => true, 'msg' => $this->lng->get( 172 ) );
+		}
 
-    //1% to check db
-    if(rand(1,100) == 50) $this->analize();
+		$this->db->commit();
 
-    return array('success'=>true, 'msg'=> $cnt );
-  }
-  
-  public function add_check($data) {
-    if(!$this->usr->canWrite()) return $this->lng->get(159);
-    
-    $this->db->start_tran();
-    $cnt = 0;
-    
-    $lines = array();
-    if(is_array($data['cash_check_grid_hdn'])) {
-      $lines = $data['cash_check_grid_hdn'];
-    } else {
-      $lines = json_decode( $data['cash_check_grid_hdn'] );
-    }
-    
-    foreach($lines as $line) {
-      $line = (array)$line;
-      $item = array(
-          'cash_item_date'          => $data['cash_check_date'],
-          'cash_item_nmcl_cb'       => $line['name'],
-          'cash_item_prod_type_cb'  => $line['gr_name'],
-          'cash_item_price'         => $line['price'],
-          'cash_item_currency_cb'   => $data['cash_check_currency_cb'],
-          'cash_item_ctype_cb'      => $data['cash_check_ctype_cb'],
-          'cash_item_qnt'           => $line['qnt'],
-          'cash_item_geo'           => $data['cash_check_geo'],
-          'cash_item_org_cb'        => $data['cash_check_org_cb'],
-          'cash_item_toper_cb'      => 0,
-          'cash_item_note'          => '',
-          'cash_item_fpd'           => $data['cash_check_fpd']
-      );
-      if(empty($item['cash_item_prod_type_cb'])) {
-        $item['cash_item_prod_type_cb'] = $data['cash_check_prod_type_cb'];
-      }
-      $ret = $this->add($item, NULL, false);
-      if($ret['failure'] === true ) {
-        $this->db->rollback();
-        $this->db->escape_result($line['name']);
-        return array('failure'=>true, 'msg'=> $this->lng->get(173).": '".$line['name']."': ".$ret['msg']);
-      }
-      $cnt++;
-    }
-    $this->db->commit();
-    return array('success'=>true, 'msg'=> $cnt );
-  } //add_check
+		//1% to check db
+		if ( rand( 1, 100 ) == 50 ) {
+			$this->analize();
+		}
 
-  public function add($data, $files, $trans = true) {
-    if(!$this->usr->canWrite()) return $this->lng->get(159);
+		return array( 'success' => true, 'msg' => $cnt );
+	}
 
-    if($trans) {
-      $this->db->start_tran();
-    }
+	public function add_check( $data ) {
+		if ( ! $this->usr->canWrite() ) {
+			return $this->lng->get( 159 );
+		}
 
-    $refb = $this->refbook_check($data, $files);
+		$this->db->start_tran();
+		$cnt = 0;
 
-    if($refb['failure']) return $refb;
-    
-    //print_r($refb);
-    //exit;
+		$lines = array();
+		if ( is_array( $data['cash_check_grid_hdn'] ) ) {
+			$lines = $data['cash_check_grid_hdn'];
+		} else {
+			$lines = json_decode( $data['cash_check_grid_hdn'] );
+		}
 
-    $sql =
-    "INSERT INTO `cashes` (nmcl_id, `group`, price, cash_type_id, qnt, `date`, org_id, bd_id, uid, `file`, `type` ,note, cur_id, geo_pos, fpd, visible, date_edit)
-     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ". $this->db->getDateFnc() .")";
+		foreach ( $lines as $line ) {
+			$line = (array) $line;
+			$item = array(
+				'cash_item_date'         => $data['cash_check_date'],
+				'cash_item_nmcl_cb'      => $line['name'],
+				'cash_item_prod_type_cb' => $line['gr_name'],
+				'cash_item_price'        => $line['price'],
+				'cash_item_currency_cb'  => $data['cash_check_currency_cb'],
+				'cash_item_ctype_cb'     => $data['cash_check_ctype_cb'],
+				'cash_item_qnt'          => $line['qnt'],
+				'cash_item_geo'          => $data['cash_check_geo'],
+				'cash_item_org_cb'       => $data['cash_check_org_cb'],
+				'cash_item_toper_cb'     => 0,
+				'cash_item_note'         => '',
+				'cash_item_fpd'          => $data['cash_check_fpd']
+			);
+			if ( empty( $item['cash_item_prod_type_cb'] ) ) {
+				$item['cash_item_prod_type_cb'] = $data['cash_check_prod_type_cb'];
+			}
+			$ret = $this->add( $item, null, false );
+			if ( $ret['failure'] === true ) {
+				$this->db->rollback();
+				$this->db->escape_result( $line['name'] );
 
-    $this->db->exec($sql,
-      $refb['cash_item_nmcl_cb'],
-      $refb['cash_item_prod_type_cb'],
-      $refb['cash_item_price'],
-      $refb['cash_item_ctype_cb'],
-      $refb['cash_item_qnt'],
-      $refb['cash_item_date'],
-      $refb['cash_item_org_cb'],
-      $this->usr->db_id,
-      $this->usr->id,
-      $refb['file'],
-      $refb['cash_item_toper_cb'],
-      $refb['cash_item_note'],
-      $refb['cash_item_currency_cb'],
-      $refb['cash_item_geo'],
-      $refb['cash_item_fpd']
-    );
-    $id = intval( $this->db->last_id() );
-    if($id == 0) { $this->db->rollback(); return array('failure'=>true, 'msg'=> $this->lng->get(174)); }
+				return array(
+					'failure' => true,
+					'msg'     => $this->lng->get( 173 ) . ": '" . $line['name'] . "': " . $ret['msg']
+				);
+			}
+			$cnt ++;
+		}
+		$this->db->commit();
 
-    if($trans) {
-      $this->db->commit();
-    }
+		return array( 'success' => true, 'msg' => $cnt );
+	} //add_check
 
-    return array('success'=>true, 'msg'=> $id );
-  } //add
+	public function add( $data, $files, $trans = true ) {
+		if ( ! $this->usr->canWrite() ) {
+			return $this->lng->get( 159 );
+		}
 
-  public function analize() {
-    if(!$this->usr->canWrite()) return $this->lng->get(159);
+		if ( $trans ) {
+			$this->db->start_tran();
+		}
+
+		$refb = $this->refbook_check( $data, $files );
+
+		if ( $refb['failure'] ) {
+			return $refb;
+		}
+
+		//print_r($refb);
+		//exit;
+
+		$sql =
+			"INSERT INTO `cashes` (nmcl_id, `group`, price, cash_type_id, qnt, `date`, org_id, bd_id, uid, `file`, `type` ,note, cur_id, geo_pos, fpd, visible, date_edit)
+     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, " . $this->db->getDateFnc() . ")";
+
+		$this->db->exec( $sql,
+			$refb['cash_item_nmcl_cb'],
+			$refb['cash_item_prod_type_cb'],
+			$refb['cash_item_price'],
+			$refb['cash_item_ctype_cb'],
+			$refb['cash_item_qnt'],
+			$refb['cash_item_date'],
+			$refb['cash_item_org_cb'],
+			$this->usr->db_id,
+			$this->usr->id,
+			$refb['file'],
+			$refb['cash_item_toper_cb'],
+			$refb['cash_item_note'],
+			$refb['cash_item_currency_cb'],
+			$refb['cash_item_geo'],
+			$refb['cash_item_fpd']
+		);
+		$id = intval( $this->db->last_id() );
+		if ( $id == 0 ) {
+			$this->db->rollback();
+
+			return array( 'failure' => true, 'msg' => $this->lng->get( 174 ) );
+		}
+
+		if ( $trans ) {
+			$this->db->commit();
+		}
+
+		return array( 'success' => true, 'msg' => $id );
+	} //add
+
+	public function analize() {
+		if ( ! $this->usr->canWrite() ) {
+			return $this->lng->get( 159 );
+		}
 
 
-    $sql = 
-    "SELECT
+		$sql  =
+			"SELECT
       MAX(cn.id) as max_id,
       MIN(cn.id) as min_id
 	  FROM
       cashes_nom cn
 	  GROUP BY
-      ". $this->db->getUpperFnc() ."(cn.name)
+      " . $this->db->getUpperFnc() . "(cn.name)
 	  HAVING
       COUNT(*) > 1";
-    $dbls = $this->db->select($sql);
-    
-    $sql = 
-    "SELECT
+		$dbls = $this->db->select( $sql );
+
+		$sql  =
+			"SELECT
       MAX(cn.id) as max_id,
       MIN(cn.id) as min_id
 	  FROM
       cashes_org cn
 	  GROUP BY
-      ". $this->db->getUpperFnc() ."(cn.name)
+      " . $this->db->getUpperFnc() . "(cn.name)
 	  HAVING
       COUNT(*) > 1";
-    $orgs = $this->db->select($sql);
+		$orgs = $this->db->select( $sql );
 
-    $this->db->start_tran();
-    foreach($dbls as $dbl) {
-      $this->db->exec("UPDATE cashes SET nmcl_id = ? WHERE nmcl_id = ?", $dbl['min_id'], $dbl['max_id']);
-      $this->db->exec("UPDATE cashes_goal SET nmcl_id = ? WHERE nmcl_id = ?", $dbl['min_id'], $dbl['max_id']);
-    }
-    foreach($orgs as $org) {
-      $this->db->exec("UPDATE cashes SET org_id = ? WHERE nmcl_id = ?", $org['min_id'], $org['max_id']);
-    }
-    $this->db->exec("DELETE FROM cashes_nom   WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.nmcl_id = cashes_nom.id union SELECT 1 FROM cashes_goal c WHERE c.nmcl_id = cashes_nom.id)");
-    $this->db->exec("DELETE FROM cashes_org   WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.org_id  = cashes_org.id)");
-    $this->db->exec("DELETE FROM cashes_group WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.`group` = cashes_group.id)");
-    $this->db->commit();
-    
-    if($this->db->_drvr != 'SQLITE') {
-      return true;
-    }
+		$this->db->start_tran();
+		foreach ( $dbls as $dbl ) {
+			$this->db->exec( "UPDATE cashes SET nmcl_id = ? WHERE nmcl_id = ?", $dbl['min_id'], $dbl['max_id'] );
+			$this->db->exec( "UPDATE cashes_goal SET nmcl_id = ? WHERE nmcl_id = ?", $dbl['min_id'], $dbl['max_id'] );
+		}
+		foreach ( $orgs as $org ) {
+			$this->db->exec( "UPDATE cashes SET org_id = ? WHERE nmcl_id = ?", $org['min_id'], $org['max_id'] );
+		}
+		$this->db->exec( "DELETE FROM cashes_nom   WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.nmcl_id = cashes_nom.id union SELECT 1 FROM cashes_goal c WHERE c.nmcl_id = cashes_nom.id)" );
+		$this->db->exec( "DELETE FROM cashes_org   WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.org_id  = cashes_org.id)" );
+		$this->db->exec( "DELETE FROM cashes_group WHERE NOT EXISTS(SELECT 1 FROM cashes c WHERE c.`group` = cashes_group.id)" );
+		$this->db->commit();
 
-    $this->db->exec("analyze cashes;");
-    $this->db->exec("analyze cashes_group;");
-    $this->db->exec("analyze cashes_group_plan;");
-    $this->db->exec("analyze cashes_goal;");
-    $this->db->exec("analyze cashes_nom;");
-    $this->db->exec("analyze cashes_org;");
-    $this->db->exec("analyze cashes_type;");
-    $this->db->exec("analyze currency;");
-    $this->db->exec("analyze db;");
-    $this->db->exec("analyze users;");
-    $this->db->exec("vacuum;");
+		if ( $this->db->_drvr != 'SQLITE' ) {
+			return true;
+		}
 
-    return true;
-  }
+		$this->db->exec( "analyze cashes;" );
+		$this->db->exec( "analyze cashes_group;" );
+		$this->db->exec( "analyze cashes_group_plan;" );
+		$this->db->exec( "analyze cashes_goal;" );
+		$this->db->exec( "analyze cashes_nom;" );
+		$this->db->exec( "analyze cashes_org;" );
+		$this->db->exec( "analyze cashes_type;" );
+		$this->db->exec( "analyze currency;" );
+		$this->db->exec( "analyze db;" );
+		$this->db->exec( "analyze users;" );
+		$this->db->exec( "vacuum;" );
+
+		return true;
+	}
 }
+
 ?>

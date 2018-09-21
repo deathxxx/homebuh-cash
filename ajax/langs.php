@@ -1,4 +1,4 @@
-<?
+<?php
 require_once("../lib/init.php");
 $lngs = array();
 foreach($lng->lst() as $k=>$l) {

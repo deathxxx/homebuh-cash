@@ -1,4 +1,4 @@
-<?
+<?php
 $short = true;
 require_once("../lib/init.php");
 

@@ -1,4 +1,4 @@
-<?
+<?php
 require_once("../lib/init.php");
 /*$_POST = array(
     'cash_item_date' => '2013-05-11',

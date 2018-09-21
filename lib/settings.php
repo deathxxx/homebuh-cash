@@ -1,4 +1,4 @@
-<?
+<?php
 class CashSett {
   private $db;
   private $usr;

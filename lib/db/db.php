@@ -1,211 +1,222 @@
-<?
+<?php
+
 abstract class DB {
-  protected $_srv, $_usr, $_pwd, $_db;
-  public $_drvr;
+	protected $_srv, $_usr, $_pwd, $_db;
+	public $_drvr;
 
-  //кэшировать (на один запрос)
-  public $try_cache = false;
+	//кэшировать (на один запрос)
+	public $try_cache = false;
 
-  //статистика запроса: время в микро секундах, признак взятия из кеша
-  public $stat = array();
+	//статистика запроса: время в микро секундах, признак взятия из кеша
+	public $stat = array();
 
-  //время жизни кэша, потом принудительно сбрасываем его (сек.)
-  public $cache_ttl = 86400; //1 день
+	//время жизни кэша, потом принудительно сбрасываем его (сек.)
+	public $cache_ttl = 86400; //1 день
 
-  protected $_con, $_stmt;
+	protected $_con, $_stmt;
 
-  //режим отладки
-  public $debug = false;
+	//режим отладки
+	public $debug = false;
 
-  //кодировка бд
-  public $encode = 'UTF8';
-  
-  //автокоммит
-  public $autocommit = false;
-  
-  //экранировать результат запроса (на один запрос)
-  public $escape_res = false;
+	//кодировка бд
+	public $encode = 'UTF8';
 
-  protected $start_time;
-  protected $stop_time;
+	//автокоммит
+	public $autocommit = false;
 
-  function __construct($drvr, $srv, $db, $login, $pwd) {
-    $this->_con  = false;
-    $this->_srv  = $srv;
-    $this->_drvr = $drvr;
-    $this->_usr  = $login;
-    $this->_pwd  = $pwd;
-    $this->_db   = $db;
-  }
+	//экранировать результат запроса (на один запрос)
+	public $escape_res = false;
 
-  public function connect() {
-    $this->_con = $this->try_connect($this->_srv, $this->_usr, $this->_pwd, $this->_db);
-    if($this->_con === false) throw new CashError("Error connect to DB");
+	protected $start_time;
+	protected $stop_time;
 
-    $this->after_connect();
-  }
+	function __construct( $drvr, $srv, $db, $login, $pwd ) {
+		$this->_con  = false;
+		$this->_srv  = $srv;
+		$this->_drvr = $drvr;
+		$this->_usr  = $login;
+		$this->_pwd  = $pwd;
+		$this->_db   = $db;
+	}
 
-  public function try_connect($srv, $login, $pasw, $db) {
-    //virtual
-  }
+	public function connect() {
+		$this->_con = $this->try_connect( $this->_srv, $this->_usr, $this->_pwd, $this->_db );
+		if ( $this->_con === false ) {
+			throw new CashError( "Error connect to DB" );
+		}
 
-  public function after_connect() {
-    //virtual
-  }
+		$this->after_connect();
+	}
 
-  public function raiseError() {
-    //virtual
-  }
-  
-  public function start_tran() {
-    //virtual
-  }
+	public function try_connect( $srv, $login, $pasw, $db ) {
+		//virtual
+	}
 
-  public function commit() {
-    //virtual
-  }
+	public function after_connect() {
+		//virtual
+	}
 
-  public function rollback() {
-    //virtual
-  }
+	public function raiseError() {
+		//virtual
+	}
 
-  public function last_id() {
-    //virtual
-  }
+	public function start_tran() {
+		//virtual
+	}
 
-  public function affect() {
-    //virtual
-  }
+	public function commit() {
+		//virtual
+	}
 
-  public function exec($sql) {
-    $this->start_time = microtime(true);
+	public function rollback() {
+		//virtual
+	}
 
-    $args = func_get_args();
-    unset($args[0]);
-    $res = $this->_exec($sql, $args);
+	public function last_id() {
+		//virtual
+	}
 
-    //stat
-    $this->stop_time = microtime(true);
-    $this->debug($this->getRealSql($sql,$args)."\n+query time: ".($this->stop_time - $this->start_time)." sec.");
+	public function affect() {
+		//virtual
+	}
 
-    if($res === false) $this->raiseError();
-    return $res;
-  }
+	public function exec( $sql ) {
+		$this->start_time = microtime( true );
 
-  protected function _exec($sql, $args) {
-    //virtual
-  }
+		$args = func_get_args();
+		unset( $args[0] );
+		$res = $this->_exec( $sql, $args );
 
-  protected function _createCacheByData($to, &$data) {
-    //virtual
-  }
+		//stat
+		$this->stop_time = microtime( true );
+		$this->debug( $this->getRealSql( $sql, $args ) . "\n+query time: " . ( $this->stop_time - $this->start_time ) . " sec." );
 
-  protected function createCacheBySql($to, $sql, $args) {
-    //сбросим флаг кеширования
-    $this->try_cache = false;
-    //данные
-    $data = $this->_exec($sql, $args);
+		if ( $res === false ) {
+			$this->raiseError();
+		}
 
-    $this->_createCacheByData($to, $data);
-    return $data;
-  }
+		return $res;
+	}
 
-  public function getCacheBySql($sql, $args) {
-    //virtual
-  }
+	protected function _exec( $sql, $args ) {
+		//virtual
+	}
 
-  public function getRealSql($sql, $args) {
-    //virtual
-  }
-  
-  public function escape_result(&$value) {
-    if(is_string($value)) {
-      $value = htmlspecialchars($value, ENT_QUOTES);
-    }
-  }
-  
-  protected function debug($str) {
-    if($this->debug) {
-      file_put_contents(dirname(__FILE__)."/debug.log", "[".date("Y-m-d H:i:s")."]\n".$str."\n\n", FILE_APPEND);
-    }
-  }
+	protected function _createCacheByData( $to, &$data ) {
+		//virtual
+	}
 
-  protected function _select($sql, $args, $type) {
-    //сам sql запрос не параметр
-    unset($args[0]);
-    
-    $rows = array();
-    
-    $this->start_time = microtime(true);
+	protected function createCacheBySql( $to, $sql, $args ) {
+		//сбросим флаг кеширования
+		$this->try_cache = false;
+		//данные
+		$data = $this->_exec( $sql, $args );
 
-    if($this->try_cache) {
-      
+		$this->_createCacheByData( $to, $data );
 
-      $rows = $this->getCacheBySql($sql, $args);
-      $this->try_cache = false;
-      if(!empty($rows)) {
-        $this->stop_time = microtime(true);
-        $this->stat = array('mcr_time'=> ($this->stop_time - $this->start_time), 'cache'=> true);
+		return $data;
+	}
 
-        $this->debug( $this->getRealSql($sql, $args)."\n+From cache!\n+query time: ".$this->stat['mcr_time']." sec. ");
+	public function getCacheBySql( $sql, $args ) {
+		//virtual
+	}
 
-        return $rows;
-      }
-    }
+	public function getRealSql( $sql, $args ) {
+		//virtual
+	}
 
-    //запрос
-    $rows = $this->_exec($sql, $args);
-    
-    //экранируем
-    if($this->escape_res) {
-      array_walk_recursive($rows, array($this, "escape_result") );
-      $this->escape_res = false;
-    }
+	public function escape_result( &$value ) {
+		if ( is_string( $value ) ) {
+			$value = htmlspecialchars( $value, ENT_QUOTES );
+		}
+	}
 
-    //формируем массив данных
-    if($type == 2) {
-      //строка
-      $rows = $rows[0];
-    } else if($type == 3) {
-      //первый элемент
-      $rows = @array_shift($rows[0]);
-    }
-    $this->stop_time = microtime(true);
-    $this->stat = array('mcr_time'=> ($this->stop_time - $this->start_time), 'cache'=> false);
-    $this->debug($this->getRealSql($sql,$args)."\n+query time: ".($this->stat['mcr_time'])." sec.");
+	protected function debug( $str ) {
+		if ( $this->debug ) {
+			file_put_contents( dirname( __FILE__ ) . "/debug.log", "[" . date( "Y-m-d H:i:s" ) . "]\n" . $str . "\n\n", FILE_APPEND );
+		}
+	}
 
-    return $rows;
-  }
+	protected function _select( $sql, $args, $type ) {
+		//сам sql запрос не параметр
+		unset( $args[0] );
 
-  public function select($sql) {
-    $args = func_get_args();
-    return $this->_select($sql, $args, 1);
-  }
+		$rows = array();
 
-  public function line($sql) {
-    $args = func_get_args();
-    return $this->_select($sql, $args, 2);
-  }
+		$this->start_time = microtime( true );
 
-  public function element($sql) {
-    $args = func_get_args();
-    return $this->_select($sql, $args, 3);
-  }
+		if ( $this->try_cache ) {
 
-  function __destruct() {
-    //virtual
-  }
 
-  function resetOldCache() {
-    //virtual
-  }
-  
-  public function getUpperFnc() {
-    //virtual
-  }
-  
-  public function getDateFnc() {
-    //virtual
-  }
+			$rows            = $this->getCacheBySql( $sql, $args );
+			$this->try_cache = false;
+			if ( ! empty( $rows ) ) {
+				$this->stop_time = microtime( true );
+				$this->stat      = array( 'mcr_time' => ( $this->stop_time - $this->start_time ), 'cache' => true );
+
+				$this->debug( $this->getRealSql( $sql, $args ) . "\n+From cache!\n+query time: " . $this->stat['mcr_time'] . " sec. " );
+
+				return $rows;
+			}
+		}
+
+		//запрос
+		$rows = $this->_exec( $sql, $args );
+
+		//экранируем
+		if ( $this->escape_res ) {
+			array_walk_recursive( $rows, array( $this, "escape_result" ) );
+			$this->escape_res = false;
+		}
+
+		//формируем массив данных
+		if ( $type == 2 ) {
+			//строка
+			$rows = $rows[0];
+		} else if ( $type == 3 ) {
+			//первый элемент
+			$rows = @array_shift( $rows[0] );
+		}
+		$this->stop_time = microtime( true );
+		$this->stat      = array( 'mcr_time' => ( $this->stop_time - $this->start_time ), 'cache' => false );
+		$this->debug( $this->getRealSql( $sql, $args ) . "\n+query time: " . ( $this->stat['mcr_time'] ) . " sec." );
+
+		return $rows;
+	}
+
+	public function select( $sql ) {
+		$args = func_get_args();
+
+		return $this->_select( $sql, $args, 1 );
+	}
+
+	public function line( $sql ) {
+		$args = func_get_args();
+
+		return $this->_select( $sql, $args, 2 );
+	}
+
+	public function element( $sql ) {
+		$args = func_get_args();
+
+		return $this->_select( $sql, $args, 3 );
+	}
+
+	function __destruct() {
+		//virtual
+	}
+
+	function resetOldCache() {
+		//virtual
+	}
+
+	public function getUpperFnc() {
+		//virtual
+	}
+
+	public function getDateFnc() {
+		//virtual
+	}
 }
+
 ?>

@@ -1,0 +1,14 @@
+2018-09-20 06:45:13; host: localhost:8000; ip: 192.168.32.1; file: /var/www/html/lib/db/sqlite.php; line: 32; msg: [19] NOT NULL constraint failed: currency.rate; stack: #0 /var/www/html/lib/db/sqlite.php(85): SQLITE_DB->raiseError()
+#1 /var/www/html/lib/db/db.php(88): SQLITE_DB->_exec('INSERT INTO cur...', Array)
+#2 /var/www/html/lib/cash.php(411): DB->exec('INSERT INTO cur...', '\xD1\x81\xD0\xBE\xD0\xBC')
+#3 /var/www/html/lib/cash.php(484): Cash->add_refbook('\xD1\x81\xD0\xBE\xD0\xBC', 'currency')
+#4 /var/www/html/lib/cash.php(688): Cash->refbook_check(Array, Array)
+#5 /var/www/html/ajax/add.php(21): Cash->add(Array, Array)
+#6 {main}
+2018-09-20 06:45:17; host: localhost:8000; ip: 192.168.32.1; file: /var/www/html/lib/db/sqlite.php; line: 32; msg: [19] NOT NULL constraint failed: currency.rate; stack: #0 /var/www/html/lib/db/sqlite.php(85): SQLITE_DB->raiseError()
+#1 /var/www/html/lib/db/db.php(88): SQLITE_DB->_exec('INSERT INTO cur...', Array)
+#2 /var/www/html/lib/cash.php(411): DB->exec('INSERT INTO cur...', '\xD1\x81\xD0\xBE\xD0\xBC')
+#3 /var/www/html/lib/cash.php(484): Cash->add_refbook('\xD1\x81\xD0\xBE\xD0\xBC', 'currency')
+#4 /var/www/html/lib/cash.php(688): Cash->refbook_check(Array, Array)
+#5 /var/www/html/ajax/add.php(21): Cash->add(Array, Array)
+#6 {main}

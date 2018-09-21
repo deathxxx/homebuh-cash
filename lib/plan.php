@@ -1,4 +1,4 @@
-<?
+<?php
 /*
 CREATE TABLE "cashes_group_plan" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
