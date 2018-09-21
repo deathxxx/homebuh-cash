@@ -1,0 +1,153 @@
+* {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 13px !important;
+}
+body, html {
+  margin: 0px;
+  padding: 0px 5px 0px 5px;
+  height: 100%;
+}
+body {
+  background: #DFE9F6 url("loading.gif") 50% 50% no-repeat;	
+}
+img {
+  border: 0px;
+}
+.x-grid-table tfoot td * {
+  font-weight: bold;
+}
+.x-center-cell, .x-center-cell * {
+  text-align: center !important;
+}
+.x-price-cell, .x-price-cell * {
+  text-align: right !important;
+}
+.x-amount-cell, .x-amount-cell * {
+  text-align: right !important;
+  font-weight: bold !important;
+}
+.x-toolbar-default, #cash_item_form_add {
+  background: none !important;
+  border-width: 0px !important;
+}
+.edit-cash-col {
+  background-image: url("edit.png");
+  margin-left: 7px;
+}
+.del-cash-col {
+  background-image: url("delete.gif");
+  margin-left: 7px;
+}
+.copy-cash-col {
+  background-image: url("duplicate.png");
+}
+#cash_list_tabs .x-tab-bar, #cash_analit_tabs-body {
+  border: 0px !important;
+}
+#cash_list_tabs-body .x-panel, #cash_list_tabs-body {
+  border-top: 0px !important;
+  border-radius: 0 0 4px 4px;
+}
+#cash_list_tb {
+  top: 5px !important;
+}
+.x-grid-row .x-grid-cell-inner {
+  white-space: normal;
+}
+#cash_item_price_tb {
+  padding: 1px 0 5px 0px;
+}
+#cash_item_edit_id_label {
+  font-size: 10px !important;
+  color: #666666;
+}
+#cash_list_tb_filter {
+  margin-bottom: 10px;
+}
+#cash_list_tb_filter_bgrp-body {
+  padding: 10px 0px 5px 0px;
+}
+#cash_list_tb_filter .x-form-item {
+  margin-left: 10px;
+}
+.x-grid-row-summary {
+  /*position: absolute;*/
+}
+.cash_analiz_lbl {
+  font-size: 14px !important;
+  font-weight: bold !important;
+  color: #15498B;
+}
+#cash_analiz_com_date, .cash_analiz_date, #cash_analiz_grp_date,
+#cash_analiz_org_date, #cash_analiz_ingrp_date, #cash_analiz_purs_date,
+#cash_analiz_mdyn_date, #cash_analiz_cur_date, #cash_analiz_secr_amount {
+  padding-top: 15px !important;
+  margin-left: -5px !important;
+}
+#cash_set_panel-body, #cash_sets, #cash_plan_panel-body {
+  background-color: transparent !important;
+}
+#cash_item_file-inputEl {
+  cursor: pointer;
+}
+#cash_analiz_secr_out_proc-labelCell, #cash_analiz_secr_in_proc-labelCell {
+  padding-left: 20px;
+}
+#cash_analiz_secr_inout_frm {
+  border: none;
+}
+#cash_analiz_secr_in_proc_qnt, #cash_analiz_secr_out_proc_qnt {
+  margin-left: 7px;
+}
+#cash_analiz_secr_amount {
+  padding-top: 0px !important;
+}
+#cash_plan_mnth_date {
+  margin-top: 20px;
+}
+.x-grid-cell-inner { 
+  overflow: hidden !important;
+  padding: 7px !important;
+  white-space: nowrap !important;
+}
+.x-tip-form-invalid, .x-tip-body-form-invalid, .x-tip-body-form-invalid span {
+    width: auto !important;
+}
+.x-tip, .x-tip * {
+  min-width: 70px !important;
+}
+#main {
+  margin-top: 10px;
+}
+#logout {
+  position: absolute;
+  top: 9px;
+  right: 25px;
+  z-index: 10;
+}
+#main .x-tab-bar-body {
+  position: relative;
+  top: 1px;
+}
+#main #cash_list_tb_filter textarea {
+  height: 40px;
+}
+#cash_check_form_add {
+  border: 0px;
+}
+.cash_list_edit_btn_add_check_ico {
+  background: transparent url("check.png") 50% 50% no-repeat;
+}
+#cash_list_edit_btn_ocr_check {
+  top: 4px !important;
+  height: 22px !important;
+}
+#cash_refb_dwnl_btn {
+  margin-right: 10px;
+}
+.login_flag {
+  padding-right:5px;
+}
+#cash_item_file_tb {
+  padding-left: 0px;
+}
