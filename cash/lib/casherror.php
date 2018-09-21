@@ -33,7 +33,7 @@ class CashError extends Exception {
 		$this->sendMail( $log_str );
 
 		file_put_contents( $file_name, $log_str, FILE_APPEND );
-		die('hi');
+		die('error creating file - you must give access to file');
 
 	}
 
